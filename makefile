@@ -2,14 +2,14 @@ CC = g++
 CFLAGS = -Wall
 LDLIBS = -lpcap
 
-all: deauth
+all: deauth-attack
 
 mac.o : mac.h mac.cpp
 
 main.o: deauthdr.h main.cpp
 
-deauth: main.o mac.o
+deauth-attack: main.o mac.o
 	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 clean:
-	rm -f deauth *.o
+	rm -f deauth-attack *.o

