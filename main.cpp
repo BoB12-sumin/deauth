@@ -59,7 +59,8 @@ void sendAuthPacket(pcap_t *handle, const Mac &smac, const Mac &dmac, const Mac 
     memcpy(deauth_hdr->bssid, static_cast<uint8_t *>(bssid), Mac::SIZE);
     deauth_hdr->flagseq = 0;
 
-    memcpy(auth_body->fixedparam, std::array<uint8_t, 6>{0x00, 0x00, 0x02, 0x00, 0x00, 0x00}.data(), 6);
+    unsigned char temp[] = {0x00, 0x00, 0x02, 0x00, 0x00, 0x00};
+    memcpy(auth_body->fixedparam, temp, sizeof(temp));
 
     authpkt auth_pkt;
     auth_pkt.radio_hdr = *radio_hdr;
