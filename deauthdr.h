@@ -20,8 +20,8 @@ struct deauthframe
 {
     u_int16_t subtype;
     u_int16_t dur;
-    u_int8_t smac[6];
     u_int8_t dmac[6];
+    u_int8_t smac[6];
     u_int8_t bssid[6];
     u_int16_t flagseq;
 
@@ -33,11 +33,24 @@ struct deauthbody
 
 } __attribute__((__packed__));
 
+struct authbody
+{
+    u_int8_t fixedparam[6];
+
+} __attribute__((__packed__));
+
 struct deauthpkt
 {
     dot11 radio_hdr;
     deauthframe deauth_hdr;
     deauthbody deauth_body;
+} __attribute__((__packed__));
+
+struct authpkt
+{
+    dot11 radio_hdr;
+    deauthframe deauth_hdr;
+    authbody auth_body;
 } __attribute__((__packed__));
 
 #endif // DEAUTH_H
